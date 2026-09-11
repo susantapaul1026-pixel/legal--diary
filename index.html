@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Docket — Case Diary</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4F3A26">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Docket">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper: #F6F1E7;
+    --paper-raised: #FBF8F1;
+    --line: #D8CFB8;
+    --line-strong: #B9AC8A;
+    --ink: #24211B;
+    --ink-soft: #6B6455;
+    --accent: #7A5C3E;
+    --accent-deep: #4F3A26;
+    --alert: #8C4A3B;
+    --alert-bg: #EFDDD5;
+    --good: #4C6B52;
+    --good-bg: #E1E8E1;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:28px 20px 100px;
+  }
+  header.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:14px;
+    margin-bottom:6px;
+  }
+  header.top .brand{
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:0.2px;
+  }
+  header.top .brand .sub{
+    display:block;
+    font-size:12.5px;
+    font-style:italic;
+    color:var(--ink-soft);
+    font-weight:400;
+    margin-top:2px;
+  }
+  header.top .today{
+    text-align:right;
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.4;
+  }
+
+  .toolbar{
+    display:flex;
+    gap:10px;
+    margin:18px 0 22px;
+  }
+  .search{
+    flex:1;
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:9px 12px;
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--ink);
+  }
+  .search::placeholder{color:var(--ink-soft); font-style:italic;}
+  .new-btn{
+    background:var(--accent-deep);
+    color:var(--paper-raised);
+    border:none;
+    border-radius:3px;
+    padding:9px 16px;
+    font-family:inherit;
+    font-size:14.5px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .new-btn:active{background:var(--ink);}
+
+  .week-total{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:10px 0 16px;
+    margin-bottom:8px;
+    border-bottom:1px solid var(--line);
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .week-total b{color:var(--ink); font-size:15px;}
+
+  .day-group{ margin-bottom:26px; }
+  .day-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding-bottom:6px;
+    border-bottom:1px solid var(--line-strong);
+    margin-bottom:2px;
+  }
+  .day-head .date{
+    font-size:15px;
+    font-weight:600;
+  }
+  .day-head .date.overdue{ color:var(--alert); }
+  .day-head .date.today{ color:var(--good); }
+  .day-head .dayname{
+    font-style:italic;
+    color:var(--ink-soft);
+    font-weight:400;
+    margin-left:6px;
+    font-size:13.5px;
+  }
+  .day-head .total{
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+
+  .entry{
+    padding:12px 0;
+    border-bottom:1px dashed var(--line);
+    position:relative;
+  }
+  .entry:last-child{ border-bottom:none; }
+  .entry-row{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .entry-main{ flex:1; min-width:0; }
+  .entry-matter{
+    font-size:16px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .entry-parties{
+    font-size:14px;
+    font-style:italic;
+    color:var(--ink);
+    margin-top:2px;
+  }
+  .entry-meta{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:2px;
+  }
+  .entry-meta .dot{ margin:0 6px; }
+  .entry-dur{
+    text-align:right;
+    white-space:nowrap;
+    font-size:13px;
+    color:var(--ink-soft);
+    padding-top:1px;
+  }
+  .entry-notes{
+    font-size:13.5px;
+    font-style:italic;
+    color:var(--ink-soft);
+    margin-top:6px;
+    line-height:1.5;
+  }
+  .entry-actions{
+    display:flex;
+    gap:14px;
+    margin-top:8px;
+  }
+  .entry-actions button{
+    background:none;
+    border:none;
+    padding:0;
+    font-family:inherit;
+    font-size:12.5px;
+    color:var(--accent);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .entry-actions button.danger{ color:var(--alert); }
+
+  .empty{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-soft);
+  }
+  .empty .mark{
+    font-size:34px;
+    margin-bottom:10px;
+  }
+  .empty p{ font-size:14.5px; line-height:1.6; max-width:320px; margin:0 auto; }
+
+  /* Modal */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(36,33,27,0.45);
+    display:none;
+    align-items:flex-end;
+    justify-content:center;
+    z-index:50;
+  }
+  .overlay.open{ display:flex; }
+  .sheet{
+    background:var(--paper-raised);
+    width:100%;
+    max-width:640px;
+    border-radius:14px 14px 0 0;
+    padding:22px 20px 26px;
+    max-height:88vh;
+    overflow-y:auto;
+    border-top:3px solid var(--accent-deep);
+  }
+  .sheet h2{
+    margin:0 0 16px;
+    font-size:19px;
+    font-weight:700;
+  }
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+    font-style:italic;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    font-family:inherit;
+    font-size:15px;
+    padding:9px 10px;
+    border:1px solid var(--line-strong);
+    border-radius:4px;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field textarea{ resize:vertical; min-height:60px; }
+  .row2{ display:flex; gap:10px; }
+  .row2 .field{ flex:1; }
+
+  .sheet-actions{
+    display:flex;
+    gap:10px;
+    margin-top:6px;
+  }
+  .sheet-actions button{
+    flex:1;
+    padding:11px;
+    border-radius:4px;
+    font-family:inherit;
+    font-size:15px;
+    cursor:pointer;
+    border:none;
+  }
+  .btn-save{ background:var(--accent-deep); color:#fff; }
+  .btn-cancel{ background:transparent; color:var(--ink-soft); border:1px solid var(--line-strong) !important; }
+
+  .status{
+    position:fixed;
+    bottom:16px; left:50%;
+    transform:translateX(-50%);
+    background:var(--ink);
+    color:var(--paper);
+    padding:8px 16px;
+    border-radius:20px;
+    font-size:13px;
+    opacity:0;
+    transition:opacity 0.25s;
+    pointer-events:none;
+    z-index:60;
+  }
+  .status.show{ opacity:1; }
+
+  .fab{
+    position:fixed;
+    bottom:22px; right:22px;
+    width:54px; height:54px;
+    border-radius:50%;
+    background:var(--accent-deep);
+    color:#fff;
+    border:none;
+    font-size:26px;
+    line-height:54px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,0.25);
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">The Docket
+      <span class="sub">a daily record of matters attended to</span>
+    </div>
+    <div class="today" id="todayLabel"></div>
+  </header>
+
+  <div class="toolbar">
+    <input class="search" id="searchInput" placeholder="Search by case no., client, court…">
+    <button class="new-btn" id="openNewTop">+ New case</button>
+  </div>
+
+  <div class="week-total" id="weekTotal"></div>
+
+  <div id="entriesRoot"></div>
+</div>
+
+<button class="fab" id="fabNew">+</button>
+
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2 id="sheetTitle">New case</h2>
+    <input type="hidden" id="editId">
+    <div class="row2">
+      <div class="field">
+        <label>Case number</label>
+        <input type="text" id="fCaseNo" placeholder="e.g. CC/1123/2026">
+      </div>
+      <div class="field">
+        <label>Court name</label>
+        <input type="text" id="fCourt" placeholder="e.g. District Court, Room 4">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Client name</label>
+        <input type="text" id="fClient" placeholder="Client">
+      </div>
+      <div class="field">
+        <label>Opposing party</label>
+        <input type="text" id="fOpParty" placeholder="Op. party">
+      </div>
+    </div>
+    <div class="field">
+      <label>Purpose</label>
+      <input type="text" id="fPurpose" placeholder="e.g. Arguments, Evidence, Final hearing">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Case date</label>
+        <input type="date" id="fCaseDate">
+      </div>
+      <div class="field">
+        <label>Next date</label>
+        <input type="date" id="fNextDate">
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes</label>
+      <textarea id="fNotes" placeholder="Any additional notes for the record…"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" id="cancelSheet">Cancel</button>
+      <button class="btn-save" id="saveSheet">Save case</button>
+    </div>
+  </div>
+</div>
+
+<div class="status" id="statusMsg"></div>
+
+<script>
+const STORAGE_KEY = 'legal-diary-cases';
+let entries = [];
+
+const $ = id => document.getElementById(id);
+const overlay = $('overlay');
+const entriesRoot = $('entriesRoot');
+const statusMsg = $('statusMsg');
+
+function todayISO(){
+  const d = new Date();
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off*60000).toISOString().slice(0,10);
+}
+
+function showStatus(msg){
+  statusMsg.textContent = msg;
+  statusMsg.classList.add('show');
+  setTimeout(()=> statusMsg.classList.remove('show'), 1800);
+}
+
+function fmtDate(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+}
+function fmtDateShort(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+function fmtDayName(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  return dt.toLocaleDateString('en-US', {weekday:'long'});
+}
+
+function headerToday(){
+  const d = new Date();
+  $('todayLabel').innerHTML = d.toLocaleDateString('en-US',{weekday:'long'}) + '<br>' +
+    d.toLocaleDateString('en-US',{month:'long', day:'numeric', year:'numeric'});
+}
+
+async function loadEntries(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    entries = [];
+  }
+  render();
+}
+
+async function saveEntries(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }catch(e){
+    showStatus('Could not save — storage may be full');
+  }
+}
+
+function openSheet(entry){
+  $('sheetTitle').textContent = entry ? 'Edit case' : 'New case';
+  $('editId').value = entry ? entry.id : '';
+  $('fCaseNo').value = entry ? entry.caseNo : '';
+  $('fCourt').value = entry ? entry.court : '';
+  $('fClient').value = entry ? entry.client : '';
+  $('fOpParty').value = entry ? entry.opParty : '';
+  $('fPurpose').value = entry ? entry.purpose : '';
+  $('fCaseDate').value = entry ? entry.caseDate : todayISO();
+  $('fNextDate').value = entry ? entry.nextDate : '';
+  $('fNotes').value = entry ? entry.notes : '';
+  overlay.classList.add('open');
+  setTimeout(()=> $('fCaseNo').focus(), 50);
+}
+function closeSheet(){ overlay.classList.remove('open'); }
+
+async function handleSave(){
+  const caseNo = $('fCaseNo').value.trim();
+  if(!caseNo){ $('fCaseNo').focus(); return; }
+  const id = $('editId').value;
+
+  const data = {
+    id: id || (Date.now().toString(36) + Math.random().toString(36).slice(2,6)),
+    caseNo,
+    court: $('fCourt').value.trim(),
+    client: $('fClient').value.trim(),
+    opParty: $('fOpParty').value.trim(),
+    purpose: $('fPurpose').value.trim(),
+    caseDate: $('fCaseDate').value || '',
+    nextDate: $('fNextDate').value || '',
+    notes: $('fNotes').value.trim()
+  };
+
+  if(id){
+    const idx = entries.findIndex(e=>e.id===id);
+    if(idx>-1) entries[idx] = data;
+  }else{
+    entries.push(data);
+  }
+  closeSheet();
+  render();
+  await saveEntries();
+  showStatus('Case saved');
+}
+
+async function deleteEntry(id){
+  entries = entries.filter(e=>e.id!==id);
+  render();
+  await saveEntries();
+  showStatus('Case deleted');
+}
+
+function getWeekRange(){
+  const now = new Date();
+  const day = now.getDay();
+  const diffToMonday = (day === 0 ? -6 : 1) - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diffToMonday);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  sunday.setHours(23,59,59,999);
+  return [monday, sunday];
+}
+
+function render(){
+  const query = $('searchInput').value.trim().toLowerCase();
+  let filtered = entries.filter(e=>{
+    if(!query) return true;
+    return (e.caseNo+' '+e.client+' '+e.opParty+' '+e.court+' '+e.purpose+' '+e.notes).toLowerCase().includes(query);
+  });
+
+  // hearings this week (by next date)
+  const [mon, sun] = getWeekRange();
+  const weekCount = entries.filter(e=>{
+    if(!e.nextDate) return false;
+    const d = new Date(e.nextDate+'T12:00:00');
+    return d>=mon && d<=sun;
+  }).length;
+  $('weekTotal').innerHTML = `<span>Hearings this week</span><b>${weekCount}</b>`;
+
+  if(filtered.length===0){
+    entriesRoot.innerHTML = `<div class="empty">
+      <div class="mark">§</div>
+      <p>${entries.length===0 ? 'No cases yet. Add a case and its next hearing date to keep the record.' : 'No cases match your search.'}</p>
+    </div>`;
+    return;
+  }
+
+  // group by next date, entries without a next date go last under "No date set"
+  const todayStr = todayISO();
+  const byDate = {};
+  const noDate = [];
+  filtered.forEach(e=>{
+    if(!e.nextDate){ noDate.push(e); return; }
+    (byDate[e.nextDate] = byDate[e.nextDate] || []).push(e);
+  });
+  const dates = Object.keys(byDate).sort((a,b)=> a.localeCompare(b));
+
+  let html = dates.map(date=>{
+    const dayEntries = byDate[date];
+    const isOverdue = date < todayStr;
+    const isToday = date === todayStr;
+    const cls = isOverdue ? 'overdue' : (isToday ? 'today' : '');
+    const rows = dayEntries.map(e=> renderEntry(e)).join('');
+    return `<div class="day-group">
+      <div class="day-head">
+        <div><span class="date ${cls}">${fmtDate(date)}</span><span class="dayname">${isToday ? 'Today' : (isOverdue ? 'Overdue' : fmtDayName(date))}</span></div>
+        <div class="total">${dayEntries.length} case${dayEntries.length===1?'':'s'}</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  if(noDate.length){
+    html += `<div class="day-group">
+      <div class="day-head">
+        <div><span class="date">No date set</span></div>
+        <div class="total">${noDate.length} case${noDate.length===1?'':'s'}</div>
+      </div>
+      ${noDate.map(e=> renderEntry(e)).join('')}
+    </div>`;
+  }
+
+  entriesRoot.innerHTML = html;
+}
+
+function renderEntry(e){
+  return `
+    <div class="entry" data-id="${e.id}">
+      <div class="entry-row">
+        <div class="entry-main">
+          <div class="entry-matter">${escapeHtml(e.caseNo)}</div>
+          <div class="entry-parties">${escapeHtml(e.client||'—')} v. ${escapeHtml(e.opParty||'—')}</div>
+          <div class="entry-meta">${escapeHtml(e.court||'Court not set')}${e.purpose ? '<span class="dot">·</span>'+escapeHtml(e.purpose) : ''}</div>
+        </div>
+        <div class="entry-dur">Filed ${fmtDateShort(e.caseDate)}</div>
+      </div>
+      ${e.notes ? `<div class="entry-notes">${escapeHtml(e.notes)}</div>` : ''}
+      <div class="entry-actions">
+        <button onclick="editById('${e.id}')">Edit</button>
+        <button class="danger" onclick="confirmDelete('${e.id}')">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str || '';
+  return d.innerHTML;
+}
+
+window.editById = function(id){
+  const e = entries.find(x=>x.id===id);
+  if(e) openSheet(e);
+};
+window.confirmDelete = function(id){
+  if(confirm('Delete this case entry? This cannot be undone.')){
+    deleteEntry(id);
+  }
+};
+
+$('openNewTop').addEventListener('click', ()=> openSheet(null));
+$('fabNew').addEventListener('click', ()=> openSheet(null));
+$('cancelSheet').addEventListener('click', closeSheet);
+$('saveSheet').addEventListener('click', handleSave);
+$('searchInput').addEventListener('input', render);
+overlay.addEventListener('click', (e)=>{ if(e.target===overlay) closeSheet(); });
+
+headerToday();
+loadEntries();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
